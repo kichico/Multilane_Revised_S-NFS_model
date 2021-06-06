@@ -1,0 +1,37 @@
+#ifndef INITIALIZE_H
+#define INITIALIZE_H
+#include "Car_information.h"
+#include "Constants.h"
+#include "Map_information.h"
+#include "random.h"
+#include <iostream>
+#include <fstream>
+#include <cmath>
+#include <string>
+#include <sstream>
+
+class Initialize{
+private:
+	void _AssignVmax();
+	void _InitialPlacement(int Numberoflane,int lanelength);
+	void _AssignStrategy();
+	struct carID {
+		int foundcarID;
+		int detectedcarID;
+	};
+	void _FillEachInfomation(carID IDs,int distance);
+	int Maxheadway = 0;
+public:
+	void InitializeEachSettings(int Numberofvehicle, int Numberoflane, int lanelength);
+	Constants constants;
+	Car_information car;
+	Map_information map;
+	Random *random;
+	bool isDistributed = false;
+	bool isCorrelated = false;
+	std::vector<int> Defectoreachlane;
+	int Defector = 0;
+	int Cooperator = 0;
+};
+
+#endif // !INITIALIZE_H
