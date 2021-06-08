@@ -1,6 +1,4 @@
-#ifndef CARINFORMATION_H
-#define CARINFORMATION_H
-
+#pragma once
 #include <vector>
 
 //This class store the information of vechiles based on ID
@@ -34,7 +32,6 @@ public:
 	std::vector<LeadingVehicle> leadingvehicle;
 	std::vector<int> signal;
 	std::vector<int> strategy;
-	std::vector<int> position_temp;
 	std::vector<int> canditate_velocity;
 	std::vector<int> S;
 	std::vector<int> Vmax;
@@ -44,5 +41,3 @@ public:
 	void Fromcurrent_toprevious();
 
 };
-
-#endif // !CARINFORMATION_H

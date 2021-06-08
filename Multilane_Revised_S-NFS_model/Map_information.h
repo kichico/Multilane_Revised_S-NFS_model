@@ -1,6 +1,4 @@
-#ifndef MAP_INFORMATION.H
-#define MAP_INFORMATION.H
-
+#pragma once
 #include <vector>
 
 class Map_information {
@@ -27,5 +25,3 @@ public:
 	void Initialize(int Numberoflane,int lanelength);
 	void Fromcurrent_toprevious();
 };
-
-#endif // !MAP_INFORMATION.H

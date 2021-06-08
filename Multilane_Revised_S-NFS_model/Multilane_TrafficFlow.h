@@ -1,14 +1,9 @@
-#ifndef MULTILANE_TRAFFICFLOW.H
-#define MULTILANE_TRAFFICFLOW.H
+#pragma once
 #include "Update_Position.h"
 
-class Multilane_TrafficFlow :public Update_Position{
+class Multilane_TrafficFlow {
 private:
-	Measuredinfomation AllResult;
-	void _DoSimulation();
+	void _DoSimulation(Update_Position* DoSim);
 public:
-	void Calculation(int lanelength, int Numberofvehivle, int Numberoflane);
+	void Calculation(int lanelength, int Numberofvehicle, int Numberoflane);
 };
-
-
-#endif // !MULTILANE_TRAFFICFLOW.H

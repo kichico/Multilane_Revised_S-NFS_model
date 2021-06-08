@@ -1,7 +1,9 @@
 #include "Initialize.h"
 
-void Initialize::InitializeEachSettings(int Numberofvehicle, int Numberoflane, int lanelength) {
+void Initialize::InitializeEachSettings(int Numberofvehicle, int Numberoflane, int lanelength, int Cooperator) {
 	Defectoreachlane = std::vector<int>(Numberoflane, 0);
+	this->Cooperator = Cooperator;
+	this->Defector = constants.N - Cooperator;
 	car.Initialize(constants.N);
 	map.Initialize(constants.Numberoflane, constants.lanelength);
 	_InitialPlacement(Numberoflane,lanelength);
@@ -12,9 +14,10 @@ void Initialize::InitializeEachSettings(int Numberofvehicle, int Numberoflane, i
 }
 
 void Initialize::_InitialPlacement(int Numberoflane,int lanelength) {
-	std::vector<int> availablecells(Numberoflane * lanelength);
+	int AllCell = (int)(Numberoflane * lanelength);
+	std::vector<int> availablecells(AllCell);
 	car.leadingvehicle = std::vector<Car_information::LeadingVehicle>(Numberoflane);
-	for (int i = 0; i < Numberoflane * lanelength; ++i) availablecells[i] = i;
+	for (int i = 0; i < AllCell; ++i) availablecells[i] = i;
 	for (int ID = 0; ID < constants.N; ++ID) {
 		int picker = random->random((int)availablecells.size() - 1);
 		int position = availablecells[picker] % lanelength;
@@ -26,6 +29,7 @@ void Initialize::_InitialPlacement(int Numberoflane,int lanelength) {
 		car.lanenumber.current[ID] = car.lanenumber.previous[ID] = lanenumber;
 		map.recorded.existence.current[lanenumber][position] = map.recorded.existence.previous[lanenumber][position] = true;
 		map.recorded.ID.current[lanenumber][position] = map.recorded.ID.previous[lanenumber][position] = ID;
+		map.eachlanevehicle[car.lanenumber.current[ID]]++;
 		if (!car.leadingvehicle[lanenumber].existence) {
 			car.leadingvehicle[lanenumber].ID = ID;
 			car.leadingvehicle[lanenumber].existence = true;
@@ -108,7 +112,7 @@ void Initialize::_AssignVmax() {
 		}
 	}
 	else if (isDistributed == true && isCorrelated == true) {
-		int slowspeedcar = std::round((double)constants.N / 3);
+		int slowspeedcar = (int)std::round((double)constants.N / 3);
 		int highspeedcar = constants.N - slowspeedcar;
 		int generalspeedcar = constants.N - slowspeedcar - highspeedcar;
 		int alreadyassigned = 0;

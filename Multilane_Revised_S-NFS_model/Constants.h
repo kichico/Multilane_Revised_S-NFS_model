@@ -1,5 +1,4 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#pragma once
 
 class Constants {
 public:
@@ -16,5 +15,4 @@ public:
 	int Numberoflane;
 	void setConstants(int lanelength, int Numberoflane, int Numberofvehicle);
 };
-#endif // !CONSTANTS_H
 

@@ -1,5 +1,4 @@
-#ifndef INITIALIZE_H
-#define INITIALIZE_H
+#pragma once
 #include "Car_information.h"
 #include "Constants.h"
 #include "Map_information.h"
@@ -22,7 +21,7 @@ private:
 	void _FillEachInfomation(carID IDs,int distance);
 	int Maxheadway = 0;
 public:
-	void InitializeEachSettings(int Numberofvehicle, int Numberoflane, int lanelength);
+	void InitializeEachSettings(int Numberofvehicle, int Numberoflane, int lanelength, int Cooperator);
 	Constants constants;
 	Car_information car;
 	Map_information map;
@@ -33,5 +32,3 @@ public:
 	int Defector = 0;
 	int Cooperator = 0;
 };
-
-#endif // !INITIALIZE_H

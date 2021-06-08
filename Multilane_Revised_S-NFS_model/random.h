@@ -1,5 +1,4 @@
-#ifndef RANDOM_H
-#define RANDOM_H
+#pragma once
 #include <random>
 
 class Random {
@@ -11,5 +10,3 @@ public:
 	double random(double D);
 	double random(double Dmin, double Dmax);
 };
-
-#endif	//RANDOM_H

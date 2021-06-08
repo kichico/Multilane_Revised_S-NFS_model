@@ -1,6 +1,4 @@
-#ifndef DECIDE_VELOCITY.H
-#define DECIDE_VELOCITY.H
-
+#pragma once
 #include "Initialize.h"
 
 class Decide_Velocity :public Initialize {
@@ -13,5 +11,4 @@ private:
 public:
 	void Decide_targetvelocity();
 };
-#endif // !DECIDE_VELOCITY.H
 

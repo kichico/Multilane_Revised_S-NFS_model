@@ -14,9 +14,9 @@ void Decide_Velocity::Decide_targetvelocity() {
 
 int Decide_Velocity::_rule1(int ID, int v) {
 	int VelocityDifference = car.velocity.current[car.around.preceding.current[ID]] - car.velocity.current[ID];
-	bool isPrecedingcarfaster = false;
-	if (VelocityDifference > 0) isPrecedingcarfaster = true;
-	if (car.headway.current[ID] >= constants.G || isPrecedingcarfaster == true) {
+	bool isPrecedingcarfasterorSame = false;
+	if (VelocityDifference >= 0) isPrecedingcarfasterorSame = true;
+	if (car.headway.current[ID] >= constants.G || isPrecedingcarfasterorSame == true) {
 		v = std::min(car.Vmax[ID], v + 1);
 	}
 	return v;
@@ -51,6 +51,7 @@ int Decide_Velocity::_rule3(int ID, int v) {
 		distance -= car.S[ID];
 		if (distance < 0) distance += constants.lanelength;
 		v = std::min(v, distance);
+		//std::cout << ID << ":" << v << "," << distance << std::endl;
 	}
 	if (v < 0) {
 		std::cout << "error V3 " << ID << std::endl;

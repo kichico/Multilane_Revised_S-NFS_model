@@ -1,8 +1,8 @@
 #include "Update_Position.h"
 
-Update_Position::Update_Position(int filenumber, int lanelength, int Numberofvehicle, int Numberoflane) {
+Update_Position::Update_Position(int filenumber, int lanelength, int Numberofvehicle, int Numberoflane, int Cooperator) {
 	this->constants.setConstants(lanelength, Numberoflane, Numberofvehicle);
-	this->InitializeEachSettings(Numberofvehicle, Numberoflane, lanelength);
+	this->InitializeEachSettings(Numberofvehicle, Numberoflane, lanelength, Cooperator);
 	random = new Random();
 }
 
@@ -16,6 +16,7 @@ void Update_Position::Update_EachVehiclePosition() {
 		bool isThereLeadingvehicle = car.leadingvehicle[lanenumber].existence;
 		if (!isThereLeadingvehicle) continue;
 		else if (isThereLeadingvehicle) {
+			lanevelocity = 0;
 			leaderID = car.leadingvehicle[lanenumber].ID;
 			bool isUpdateComplete = false;
 			while (!isUpdateComplete) isUpdateComplete = _UpdateEachLane(leaderID);
@@ -31,6 +32,7 @@ bool Update_Position::_UpdateEachLane(int leaderID) {
 	updated.ID = map.recorded.ID.current;
 	bool isUpdateComplete = true;
 	while (true) {
+		int precedingcarID = car.around.preceding.current[focalcarID];
 		int position = car.position.current[focalcarID];
 		updated.existence[lane][position] = false;
 		updated.ID[lane][position] = NULL;
@@ -40,13 +42,21 @@ bool Update_Position::_UpdateEachLane(int leaderID) {
 			if (position >= constants.lanelength) position -= constants.lanelength;
 			if (updated.existence[lane][position]) {
 				position--;
+				if (position < 0) position += constants.lanelength;
 				break;
 			}
 		}
-		car.canditate_velocity[focalcarID] = position - car.position.current[focalcarID];
-		if (car.canditate_velocity[focalcarID] != 0) isUpdateComplete = false;
+		int moved = position - car.position.current[focalcarID];
+		if (moved < 0) moved += constants.lanelength;
+		car.canditate_velocity[focalcarID] -= moved;
 		car.position.current[focalcarID] = position;
 		car.velocity.current[focalcarID] = position - car.position.previous[focalcarID];
+		if (car.velocity.current[focalcarID] < 0) car.velocity.current[focalcarID] += constants.lanelength;
+		if (car.velocity.current[focalcarID] < 0) getchar();
+		int  headway = car.position.current[precedingcarID] - car.position.current[focalcarID];
+		if (headway < 0) headway += constants.lanelength;
+		car.headway.current[focalcarID] = headway;
+		map.lanevelocity += car.velocity.current[focalcarID];
 		updated.existence[lane][position] = true;
 		updated.ID[lane][position] = focalcarID;
 		focalcarID = car.around.preceding.current[focalcarID];
@@ -54,6 +64,12 @@ bool Update_Position::_UpdateEachLane(int leaderID) {
 	}
 	map.recorded.existence.current = updated.existence;
 	map.recorded.ID.current = updated.ID;
+	if (lanevelocity != map.lanevelocity) {
+		lanevelocity = map.lanevelocity;
+		map.lanevelocity = 0;
+		isUpdateComplete = false;
+	}
+	else isUpdateComplete = true;
 	return isUpdateComplete;
 }
 
@@ -62,20 +78,18 @@ Update_Position::Measuredinfomation Update_Position::Update_PreviousInformation(
 	MeasuredThistime.average_velocity = 0;
 	MeasuredThistime.NumberofLanechange = 0;
 	MeasuredThistime.passed = 0;
-	car.Fromcurrent_toprevious();
-	map.Fromcurrent_toprevious();
-	if (DoMeasure) return _Measure(MeasuredThistime);
-	else return MeasuredThistime;
+	if (DoMeasure) MeasuredThistime = _Measure(MeasuredThistime);
+	return MeasuredThistime;
 }
 
 Update_Position::Measuredinfomation Update_Position::_Measure(Measuredinfomation& MeasuredThistime) {
-	for (int lanenumber = 0; lanenumber < constants.Numberoflane; ++lanenumber) for (int i = 1; i <= 5; ++i) {
+	for (int lanenumber = 0; lanenumber < constants.Numberoflane; ++lanenumber) for (int i = 0; i <= 5; ++i) {
 		if (map.recorded.existence.current[lanenumber][MeasuringPoint + i]) {
 			int ID = map.recorded.ID.current[lanenumber][MeasuringPoint + i];
 			if (car.position.current[ID] >= MeasuringPoint && car.position.previous[ID] < MeasuringPoint) {
 				MeasuredThistime.average_velocity += car.velocity.current[ID];
 				MeasuredThistime.passed++;
-				if (car.lanenumber.current[ID] != car.lanenumber.previous[ID]) MeasuredThistime.NumberofLanechange++;
+				//if (car.lanenumber.current[ID] != car.lanenumber.previous[ID]) MeasuredThistime.NumberofLanechange++;
 			}
 		}
 	}
