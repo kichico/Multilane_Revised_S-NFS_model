@@ -21,6 +21,17 @@ private:
 	void _FillEachInfomation(carID IDs,int distance);
 	int Maxheadway = 0;
 public:
+	struct Measuredinfomation {
+		int NumberofLanechange = 0;
+		int passed = 0;
+		double average_velocity = 0.0;
+		Measuredinfomation operator+=(const Measuredinfomation& other) {
+			this->average_velocity += other.average_velocity;
+			this->NumberofLanechange += other.NumberofLanechange;
+			this->passed += other.passed;
+			return *this;
+		}
+	};
 	void InitializeEachSettings(int Numberofvehicle, int Numberoflane, int lanelength, int Cooperator);
 	Constants constants;
 	Car_information car;

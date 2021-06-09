@@ -52,7 +52,6 @@ bool Update_Position::_UpdateEachLane(int leaderID) {
 		car.position.current[focalcarID] = position;
 		car.velocity.current[focalcarID] = position - car.position.previous[focalcarID];
 		if (car.velocity.current[focalcarID] < 0) car.velocity.current[focalcarID] += constants.lanelength;
-		if (car.velocity.current[focalcarID] < 0) getchar();
 		int  headway = car.position.current[precedingcarID] - car.position.current[focalcarID];
 		if (headway < 0) headway += constants.lanelength;
 		car.headway.current[focalcarID] = headway;

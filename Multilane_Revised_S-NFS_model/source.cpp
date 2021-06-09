@@ -2,6 +2,6 @@
 
 int main() {
 	Multilane_TrafficFlow mt;
-	mt.Calculation(1000, 1000, 1);
+	mt.Calculation(300, 300, 1);
 	return 0;
 }
