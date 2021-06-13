@@ -82,7 +82,7 @@ Update_Position::Measuredinfomation Update_Position::Update_PreviousInformation(
 }
 
 Update_Position::Measuredinfomation Update_Position::_Measure(Measuredinfomation& MeasuredThistime) {
-	for (int lanenumber = 0; lanenumber < constants.Numberoflane; ++lanenumber) for (int i = 0; i <= 5; ++i) {
+	for (int lanenumber = 0; lanenumber < constants.Numberoflane; ++lanenumber) for (int i = 0; i <= 6; ++i) {
 		if (map.recorded.existence.current[lanenumber][MeasuringPoint + i]) {
 			int ID = map.recorded.ID.current[lanenumber][MeasuringPoint + i];
 			if (car.position.current[ID] >= MeasuringPoint && car.position.previous[ID] < MeasuringPoint) {
