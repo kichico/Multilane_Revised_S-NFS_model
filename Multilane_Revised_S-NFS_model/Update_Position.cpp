@@ -72,7 +72,7 @@ bool Update_Position::_UpdateEachLane(int leaderID) {
 	return isUpdateComplete;
 }
 
-Update_Position::Measuredinfomation Update_Position::Update_PreviousInformation() {
+Update_Position::Measuredinfomation Update_Position::AddThisTimeResult() {
 	MeasuredThisTime.average_velocity = 0;
 	MeasuredThisTime.passed = 0;
 	if (DoMeasure) MeasuredThisTime = _Measure(MeasuredThisTime);

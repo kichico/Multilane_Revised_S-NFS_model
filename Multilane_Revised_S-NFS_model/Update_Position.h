@@ -8,7 +8,7 @@ public:
 	Measuredinfomation measured;
 	bool DoMeasure = false;
 	void Update_EachVehiclePosition();
-	Measuredinfomation Update_PreviousInformation();
+	Measuredinfomation AddThisTimeResult();
 private:
 	int lanevelocity = 0;
 	int MeasuringPoint = 100;

@@ -25,8 +25,9 @@ private:
 	InsentiveInformation _CheckInsentives(int ID, int signal);
 	std::vector<LaneChangerInformation> _DecideUpdateOrder();
 	std::vector<CanditateAroundVehicle::Detected> CanditateLeadingCar;
-	bool _CompareHeadway(CanditateAroundVehicle::Detected& fr, CanditateAroundVehicle::Detected& se);
-	bool _ComparePosition(LaneChangerInformation& fr, LaneChangerInformation& se);
+	bool _CompareHeadway(const CanditateAroundVehicle::Detected& fr, const CanditateAroundVehicle::Detected& se);
+	bool _ComparePosition(const LaneChangerInformation& fr, const LaneChangerInformation& se);
+	void _UpdateRelationship(LaneChangerInformation LI,CanditateAroundVehicle around, bool beforeLaneChange);
 public:
 	void TurnonLaneChangersSignal();
 	bool TryLaneChange();

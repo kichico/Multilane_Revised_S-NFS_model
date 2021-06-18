@@ -18,12 +18,12 @@ void Multilane_TrafficFlow::Calculation(int lanelength, int Numberofvehicle, int
 		Update_Position* DoSim = new Update_Position(filenumber, lanelength, i, Numberoflane, CCar);
 		for (int j = 0; j < 1800; ++j) {
 			_DoSimulation(DoSim);
-			AllResult += DoSim->Update_PreviousInformation();
+			AllResult += DoSim->AddThisTimeResult();
 		}
 		DoSim->DoMeasure = true;
 		for (int j = 0; j < 300; ++j) {
 			_DoSimulation(DoSim);
-			AllResult += DoSim->Update_PreviousInformation();
+			AllResult += DoSim->AddThisTimeResult();
 		}
 #ifdef _OPENMP
 #pragma omp critical
@@ -40,7 +40,5 @@ void Multilane_TrafficFlow::_DoSimulation(Update_Position* DoSim) {
 	DoSim->car.Fromcurrent_toprevious();
 	DoSim->map.Fromcurrent_toprevious();
 	DoSim->Update_EachVehiclePosition();
-	//Œã‚Ål‚¦‚é
-	Update_Position::LaneChangeThisTime Thistime = DoSim->TryLaneChange();
-	if (Thistime.isDone) DoSim->Update_EachVehiclePosition();
+	if (DoSim->TryLaneChange()) DoSim->Update_EachVehiclePosition();
 }
