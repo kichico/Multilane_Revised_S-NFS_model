@@ -32,6 +32,7 @@ public:
 			return *this;
 		}
 	};
+	Measuredinfomation MeasuredThisTime;
 	void InitializeEachSettings(int Numberofvehicle, int Numberoflane, int lanelength, int Cooperator);
 	Constants constants;
 	Car_information car;

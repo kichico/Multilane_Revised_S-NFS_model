@@ -73,25 +73,23 @@ bool Update_Position::_UpdateEachLane(int leaderID) {
 }
 
 Update_Position::Measuredinfomation Update_Position::Update_PreviousInformation() {
-	Measuredinfomation MeasuredThistime;
-	MeasuredThistime.average_velocity = 0;
-	MeasuredThistime.NumberofLanechange = 0;
-	MeasuredThistime.passed = 0;
-	if (DoMeasure) MeasuredThistime = _Measure(MeasuredThistime);
-	return MeasuredThistime;
+	MeasuredThisTime.average_velocity = 0;
+	MeasuredThisTime.passed = 0;
+	if (DoMeasure) MeasuredThisTime = _Measure(MeasuredThisTime);
+	return MeasuredThisTime;
 }
 
-Update_Position::Measuredinfomation Update_Position::_Measure(Measuredinfomation& MeasuredThistime) {
+Update_Position::Measuredinfomation Update_Position::_Measure(Measuredinfomation& MeasuredThisTime) {
 	for (int lanenumber = 0; lanenumber < constants.Numberoflane; ++lanenumber) for (int i = 0; i <= 6; ++i) {
 		if (map.recorded.existence.current[lanenumber][MeasuringPoint + i]) {
 			int ID = map.recorded.ID.current[lanenumber][MeasuringPoint + i];
 			if (car.position.current[ID] >= MeasuringPoint && car.position.previous[ID] < MeasuringPoint) {
-				MeasuredThistime.average_velocity += car.velocity.current[ID];
-				MeasuredThistime.passed++;
-				//if (car.lanenumber.current[ID] != car.lanenumber.previous[ID]) MeasuredThistime.NumberofLanechange++;
+				MeasuredThisTime.average_velocity += car.velocity.current[ID];
+				MeasuredThisTime.passed++;
+				//if (car.lanenumber.current[ID] != car.lanenumber.previous[ID]) MeasuredThisTime.NumberofLanechange++;
 			}
 		}
 	}
-	return MeasuredThistime;
+	return MeasuredThisTime;
 }
 
