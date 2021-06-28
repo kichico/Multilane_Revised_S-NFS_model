@@ -32,6 +32,9 @@ bool Update_Position::_UpdateEachLane(int leaderID) {
 	updated.ID = map.recorded.ID.current;
 	bool isUpdateComplete = true;
 	while (true) {
+		if (car.lanenumber.current[focalcarID] != car.lanenumber.current[leaderID]) {
+			std::cout << "wtf" << std::endl;
+		}
 		int precedingcarID = car.around.preceding.current[focalcarID];
 		int position = car.position.current[focalcarID];
 		updated.existence[lane][position] = false;
@@ -76,6 +79,7 @@ Update_Position::Measuredinfomation Update_Position::AddThisTimeResult() {
 	MeasuredThisTime.average_velocity = 0;
 	MeasuredThisTime.passed = 0;
 	if (DoMeasure) MeasuredThisTime = _Measure(MeasuredThisTime);
+	else MeasuredThisTime.NumberofLanechange = 0;
 	return MeasuredThisTime;
 }
 
@@ -86,7 +90,6 @@ Update_Position::Measuredinfomation Update_Position::_Measure(Measuredinfomation
 			if (car.position.current[ID] >= MeasuringPoint && car.position.previous[ID] < MeasuringPoint) {
 				MeasuredThisTime.average_velocity += car.velocity.current[ID];
 				MeasuredThisTime.passed++;
-				//if (car.lanenumber.current[ID] != car.lanenumber.previous[ID]) MeasuredThisTime.NumberofLanechange++;
 			}
 		}
 	}
