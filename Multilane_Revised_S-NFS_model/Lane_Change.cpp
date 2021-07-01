@@ -17,20 +17,21 @@ void Lane_Change::TurnonLaneChangersSignal() {
 		left = _CheckInsentives(ID, Car_information::SignalKind::Left);
 		right = _CheckInsentives(ID, Car_information::SignalKind::Right);
 		if (left.on == false && right.on == false) continue;
-		if (left.distance > right.distance) changer.signal = Car_information::SignalKind::Left;
-		else if (left.distance < right.distance) changer.signal = Car_information::SignalKind::Right;
-		else {
-			if (random->random(1.0) < 0.5)  if (left.on) changer.signal = Car_information::SignalKind::Left;
-			else if (right.on) changer.signal = Car_information::SignalKind::Right;
-		}
-		if (changer.signal != Car_information::SignalKind::Non) {
-			changer.ID = ID;
-			changer.position = car.position.current[ID];
-			//std::cout << "Lanechanger ID:" << changer.ID << ",Lanechanger signal:" << changer.signal << ",Lanechanger lane:" << car.lanenumber.current[changer.ID] << std::endl;
-			Lanechanger.emplace_back(changer);
-			if (CanditateLeadingCar[car.lanenumber.current[changer.ID]].distance < car.headway.current[changer.ID]) {
-				CanditateLeadingCar[car.lanenumber.current[changer.ID]].ID = changer.ID;
-				CanditateLeadingCar[car.lanenumber.current[changer.ID]].distance = car.headway.current[changer.ID];
+		if (left.on == true || right.on == true) {
+			if (left.distance > right.distance) changer.signal = Car_information::SignalKind::Left;
+			else if (left.distance < right.distance) changer.signal = Car_information::SignalKind::Right;
+			else {
+				if (random->random(1.0) < 0.5)  if (left.on) changer.signal = Car_information::SignalKind::Left;
+				else if (right.on) changer.signal = Car_information::SignalKind::Right;
+			}
+			if (changer.signal != Car_information::SignalKind::Non) {
+				changer.ID = ID;
+				changer.position = car.position.current[ID];
+				Lanechanger.emplace_back(changer);
+				if (CanditateLeadingCar[car.lanenumber.current[changer.ID]].distance < car.headway.current[changer.ID]) {
+					CanditateLeadingCar[car.lanenumber.current[changer.ID]].ID = changer.ID;
+					CanditateLeadingCar[car.lanenumber.current[changer.ID]].distance = car.headway.current[changer.ID];
+				}
 			}
 		}
 	}
@@ -42,6 +43,8 @@ bool Lane_Change::TryLaneChange() {
 		Lanechanger = _DecideUpdateOrder();
 		LaneChangerInformation LI;
 		CanditateAroundVehicle around;
+		for (auto x : Lanechanger) std::cout << "pos:" << x.position << " velocity:" << car.velocity.current[x.ID] << std::endl;
+		getchar();
 		for (int i = 0; i < Lanechanger.size(); ++i) {
 			LI = Lanechanger[i];
 			LI.position = car.position.current[LI.ID];

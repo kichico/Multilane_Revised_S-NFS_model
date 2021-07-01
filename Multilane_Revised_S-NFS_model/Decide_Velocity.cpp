@@ -5,7 +5,7 @@ void Decide_Velocity::Decide_targetvelocity() {
 	for (int ID = 0; ID < constants.N; ++ID) {
 		int v = car.velocity.current[ID];
 		car.S[ID] = constants.S;
-		v = _rule1(ID,v);
+		v = _rule1(ID, v);
 		v = _rule2(ID, v);
 		v = _rule3(ID, v);
 		car.canditate_velocity[ID] = _rule4(ID, v);

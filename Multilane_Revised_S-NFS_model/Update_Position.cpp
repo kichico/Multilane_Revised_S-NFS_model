@@ -93,6 +93,7 @@ Update_Position::Measuredinfomation Update_Position::_Measure(Measuredinfomation
 			}
 		}
 	}
+	std::cout << "Pased at this time:"<<MeasuredThisTime.passed << std::endl;
 	return MeasuredThisTime;
 }
 
