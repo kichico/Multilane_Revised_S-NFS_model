@@ -43,8 +43,9 @@ bool Lane_Change::TryLaneChange() {
 		Lanechanger = _DecideUpdateOrder();
 		LaneChangerInformation LI;
 		CanditateAroundVehicle around;
-		for (auto x : Lanechanger) std::cout << "pos:" << x.position << " velocity:" << car.velocity.current[x.ID] << std::endl;
-		getchar();
+		std::vector<LaneChangerInformation> debug;
+		//for (auto x : Lanechanger) std::cout << "pos:" << x.position << " velocity:" << car.velocity.current[x.ID] << std::endl;
+		//getchar();
 		for (int i = 0; i < Lanechanger.size(); ++i) {
 			LI = Lanechanger[i];
 			LI.position = car.position.current[LI.ID];
@@ -68,6 +69,7 @@ bool Lane_Change::TryLaneChange() {
 				map.recorded.existence.current[NextLane][LI.position] = true;
 				map.recorded.ID.current[NextLane][LI.position] = LI.ID;
 				_UpdateRelationship(LI, around, beforeLaneChange);
+				debug.emplace_back(LI);
 			}
 		}
 		for (int Lane = 0; Lane < constants.Numberoflane; ++Lane) {
@@ -98,14 +100,14 @@ Lane_Change::InsentiveInformation Lane_Change::_CheckInsentives(int ID, int sign
 	int FocalLane = car.lanenumber.current[ID];
 	int precedingcarID = car.around.preceding.current[ID];
 	if (FocalLane == 0 && signal == Car_information::SignalKind::Left) return check;
-	else if (FocalLane == constants.Numberoflane - 1 && Car_information::SignalKind::Right) return check;
+	else if (FocalLane == constants.Numberoflane - 1 && signal == Car_information::SignalKind::Right) return check;
 	else {
 		FocalLane++;
 		if (signal == Car_information::SignalKind::Left) FocalLane -= 2;
 		if (map.recorded.existence.current[FocalLane][car.position.current[ID]]) return check;
 		if (car.headway.current[ID] > car.velocity.current[ID] - car.velocity.current[precedingcarID]) return check;
 		Around = _GetAroundInformation(ID, FocalLane);
-		if (Around.preceding.distance > car.velocity.current[ID] - car.velocity.current[Around.preceding.ID]) {
+		if (Around.preceding.distance > car.velocity.current[ID] - car.velocity.current[Around.preceding.ID] && Around.preceding.distance > 0) {
 			check.on = true;
 			check.distance = Around.preceding.distance;
 		}

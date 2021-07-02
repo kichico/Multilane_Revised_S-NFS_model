@@ -21,13 +21,14 @@ private:
 		};
 		Detected preceding, following;
 	};
-	std::vector<LaneChangerInformation> Lanechanger;
+	
 	CanditateAroundVehicle _GetAroundInformation(int ID, int FocalLane);
 	InsentiveInformation _CheckInsentives(int ID, int signal);
 	std::vector<LaneChangerInformation> _DecideUpdateOrder();
 	std::vector<CanditateAroundVehicle::Detected> CanditateLeadingCar;
 	void _UpdateRelationship(LaneChangerInformation LI,CanditateAroundVehicle around, bool beforeLaneChange);
 public:
+	std::vector<LaneChangerInformation> Lanechanger;
 	void TurnonLaneChangersSignal();
 	bool TryLaneChange();
 };

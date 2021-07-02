@@ -33,6 +33,9 @@ void Multilane_TrafficFlow::Calculation(int lanelength, int Numberofvehicle, int
 				if (j >= 200 && ID >=50) ofs << j << "," << DoSim->car.position.current[ID] << std::endl;
 			}
 			std::cout << "ave:" << ave / DoSim->constants.N << std::endl;
+			std::cout << "This time result:" << DoSim->MeasuredThisTime.NumberofLanechange << "attempt to change lane:" << DoSim->Lanechanger.size() << std::endl;
+			//for (auto x : DoSim->Lanechanger) std::cout << "ID:" << x.ID << " current lane:" << DoSim->car.lanenumber.current[x.ID] << " previous lane:" << DoSim->car.lanenumber.previous[x.ID] << std::endl;
+			
 		}
 	}
 	//std::cout << "1:" << DoSim->map.eachlanevehicle[0] << ",2:" << DoSim->map.eachlanevehicle[1] << ",3:" << DoSim->map.eachlanevehicle[2] << std::endl;
