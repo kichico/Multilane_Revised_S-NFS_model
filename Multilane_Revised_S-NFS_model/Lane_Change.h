@@ -21,15 +21,20 @@ private:
 		};
 		Detected preceding, following;
 	};
-	
+	struct PushedVehicleInformation {
+		CanditateAroundVehicle around;
+		LaneChangerInformation info;
+	};
 	CanditateAroundVehicle _GetAroundInformation(int ID, int FocalLane);
 	InsentiveInformation _CheckInsentives(int ID, int signal);
 	std::vector<LaneChangerInformation> _DecideUpdateOrder();
 	std::vector<CanditateAroundVehicle::Detected> CanditateLeadingCar;
 	void _UpdateRelationship(LaneChangerInformation LI,CanditateAroundVehicle around, bool beforeLaneChange);
+	std::vector<PushedVehicleInformation> Pushed;
 public:
 	std::vector<LaneChangerInformation> Lanechanger;
 	void TurnonLaneChangersSignal();
 	bool TryLaneChange();
+	void CheckPushed();
 };
 

@@ -5,5 +5,5 @@ class Multilane_TrafficFlow {
 private:
 	void _DoSimulation(Update_Position* DoSim);
 public:
-	void Calculation(int lanelength, int Numberofvehicle, int Numberoflane);
+	void Calculation(int filenumber, int lanelength, int Numberofvehicle, int Numberoflane);
 };
