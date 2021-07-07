@@ -22,13 +22,15 @@ private:
 	int Maxheadway = 0;
 public:
 	struct Measuredinfomation {
-		int NumberofLanechange = 0;
+		int Lanechange_original = 0;
+		int Lanechange_Pushed = 0;
 		int passed = 0;
 		double average_velocity = 0.0;
 		Measuredinfomation operator+=(const Measuredinfomation& other) {
 			this->average_velocity += other.average_velocity;
-			this->NumberofLanechange += other.NumberofLanechange;
+			this->Lanechange_original += other.Lanechange_original;
 			this->passed += other.passed;
+			this->Lanechange_Pushed += other.Lanechange_Pushed;
 			return *this;
 		}
 	};

@@ -79,7 +79,10 @@ Update_Position::Measuredinfomation Update_Position::AddThisTimeResult() {
 	MeasuredThisTime.average_velocity = 0;
 	MeasuredThisTime.passed = 0;
 	if (DoMeasure) MeasuredThisTime = _Measure(MeasuredThisTime);
-	else MeasuredThisTime.NumberofLanechange = 0;
+	else {
+		MeasuredThisTime.Lanechange_original = 0;
+		MeasuredThisTime.Lanechange_Pushed = 0;
+	}
 	return MeasuredThisTime;
 }
 
