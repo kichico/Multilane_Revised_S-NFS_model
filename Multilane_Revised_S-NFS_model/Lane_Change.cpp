@@ -143,13 +143,6 @@ void Lane_Change::PickUpPushed() {
 				Pushed.emplace_back(PushedVehicle);
 				AlreadyPicked.insert(both.info.ID);
 				TotalLaneChanger.emplace_back(both);
-				int FocalLane = car.lanenumber.current[both.info.ID];
-				int NextLane = FocalLane + 1;
-				if (both.info.signal == Car_information::SignalKind::Left) NextLane -= 2;
-				//If there is another vehicle at NextLane'S same position, LaneChange won't be done
-				if (NextLane >= 3 || NextLane < 0) {
-					int v = car.lanenumber.current[both.info.ID];
-				}
 			}
 		}
 	}
@@ -187,13 +180,6 @@ void Lane_Change::TurnonLaneChangersSignal() {
 				changer.position = car.position.current[ID];
 				int v = car.lanenumber.current[changer.ID];
 				Lanechanger.emplace_back(changer);
-				int FocalLane = car.lanenumber.current[changer.ID];
-				int NextLane = FocalLane + 1;
-				if (changer.signal == Car_information::SignalKind::Left) NextLane -= 2;
-				//If there is another vehicle at NextLane'S same position, LaneChange won't be done
-				if (NextLane >= 3 || NextLane < 0) {
-					int v = car.lanenumber.current[changer.ID];
-				}
 				both.info = changer;
 				both.isPushed = false;
 				TotalLaneChanger.emplace_back(both);
@@ -294,16 +280,10 @@ bool Lane_Change::TryBothLaneChangeRule() {
 		CanditateAroundVehicle around;
 		for (int i = 0; i < TotalLaneChanger.size(); ++i) {
 			LI = TotalLaneChanger[i];
-			//if (AlreadyPicked.count(LI.info.ID) != 0) continue;
-			//else AlreadyPicked.insert(LI.info.ID);
 			LI.info.position = car.position.current[LI.info.ID];
 			int FocalLane = car.lanenumber.current[LI.info.ID];
 			int NextLane = FocalLane + 1;
 			if (LI.info.signal == Car_information::SignalKind::Left) NextLane -= 2;
-			//If there is another vehicle at NextLane'S same position, LaneChange won't be done
-			if (NextLane >= 3 || NextLane < 0) {
-				int v = 0;
-			}
 			if (map.recorded.existence.current[NextLane][LI.info.position]) continue;
 			around = _GetAroundInformation(LI.info.ID, NextLane);
 			bool beforeLaneChange = true;
