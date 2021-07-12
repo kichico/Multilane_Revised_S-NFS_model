@@ -1,111 +1,19 @@
 #include "Lane_Change.h"
 
-void Lane_Change::CheckPushed() {
-	Pushed = std::vector<PushedVehicleInformation>(0);
-	//At first, checking every vehicle about whether backward pushing criteria is met or not
-	PushedVehicleInformation PushedVehicle;
-	BothLaneChange both;
-	for (int i = 0; i < constants.N; ++i) {
-		int followerID = car.around.following.current[i];
-		int distance = car.headway.current[followerID];
-		bool isFocalVehiclePushed = false;
-		if (car.velocity.current[i] - car.velocity.current[followerID] < 0) isFocalVehiclePushed = true;
-		//If Following Vehicle is approaching focal vehicle and he is faster than focal, focakl vehicle feel "Pushed"
-		if (distance <= constants.G && isFocalVehiclePushed) {
-			PushedVehicle.info.ID = i;
-			PushedVehicle.info.position = car.position.current[i];
-			PushedVehicle.info.signal = Car_information::SignalKind::Non;
-			int FocalLane = car.lanenumber.current[i];
-			CanditateAroundVehicle right, left;
-			if (0 < FocalLane && FocalLane < constants.Numberoflane - 1) {
-				int NextLane = FocalLane + 1;
-				right = _GetAroundInformation(i, NextLane);
-				NextLane = FocalLane - 1;
-				left = _GetAroundInformation(i, NextLane);
-				if (right.following.distance > left.following.distance) PushedVehicle.info.signal = Car_information::SignalKind::Right;
-				else if (right.following.distance < left.following.distance) PushedVehicle.info.signal = Car_information::SignalKind::Left;
-				else {
-					if (random->random(1.0) < 0.5) PushedVehicle.info.signal = Car_information::SignalKind::Left;
-					else PushedVehicle.info.signal = Car_information::SignalKind::Right;
-				}
-			}
-			else if (FocalLane == 0) {
-				int NextLane = FocalLane + 1;
-				right = _GetAroundInformation(i, NextLane);
-				if (right.following.distance > 0) PushedVehicle.info.signal = Car_information::SignalKind::Right;
-				else PushedVehicle.info.signal = Car_information::SignalKind::Non;
-			}
-			else {
-				int NextLane = FocalLane - 1;
-				left = _GetAroundInformation(i, NextLane);
-				if (left.following.distance > 0) PushedVehicle.info.signal = Car_information::SignalKind::Left;
-				else PushedVehicle.info.signal = Car_information::SignalKind::Non;
-			}
-			if (PushedVehicle.info.signal != Car_information::SignalKind::Non) {
-				if (PushedVehicle.info.signal == Car_information::SignalKind::Left) PushedVehicle.around = left;
-				if (PushedVehicle.info.signal == Car_information::SignalKind::Right) PushedVehicle.around = right;
-				Pushed.emplace_back(PushedVehicle);
-			}
-		}
-	}
-	if (Pushed.size() > 0) {
-		PushedVehicleInformation LI;
-		for (int i = 0; i < Pushed.size(); ++i) {
-			LI = Pushed[i];
-			LI.info.position = car.position.current[LI.info.ID];
-			int FocalLane = car.lanenumber.current[LI.info.ID];
-			int NextLane = FocalLane + 1;
-			if (LI.info.signal == Car_information::SignalKind::Left) NextLane -= 2;
-			//If there is another vehicle at NextLane'S same position, LaneChange won't be done
-			if (map.recorded.existence.current[NextLane][LI.info.position]) continue;
-			bool beforeLaneChange = true;
-			LI.around = _GetAroundInformation(LI.info.ID, NextLane);
-			if (LI.around.following.distance >= car.canditate_velocity[LI.around.following.ID] - car.canditate_velocity[LI.info.ID]
-				&& LI.around.preceding.distance >= car.canditate_velocity[LI.info.ID] - car.canditate_velocity[LI.around.preceding.ID]) {
-				++MeasuredThisTime.Lanechange_Pushed;
-				--map.eachlanevehicle[FocalLane];
-				map.recorded.existence.current[FocalLane][LI.info.position] = false;
-				if (map.eachlanevehicle[FocalLane] > 0) _UpdateRelationship(LI.info, LI.around, beforeLaneChange);
-				else car.leadingvehicle[FocalLane].existence = false;
-				beforeLaneChange = false;
-				car.lanenumber.current[LI.info.ID] = NextLane;
-				++map.eachlanevehicle[NextLane];
-				map.recorded.existence.current[NextLane][LI.info.position] = true;
-				map.recorded.ID.current[NextLane][LI.info.position] = LI.info.ID;
-				_UpdateRelationship(LI.info, LI.around, beforeLaneChange);
-			}
-		}
-		for (int Lane = 0; Lane < constants.Numberoflane; ++Lane) {
-			if (map.eachlanevehicle[Lane] == 0) car.leadingvehicle[Lane].existence = false;
-			else {
-				Car_information::LeadingVehicle Leading;
-				Leading = car.leadingvehicle[Lane];
-				int ID = car.around.following.current[Leading.ID];
-				while (ID != Leading.ID) {
-					if (Leading.distance < car.headway.current[ID]) {
-						Leading.distance = car.headway.current[ID];
-						Leading.ID = ID;
-					}
-					ID = car.around.following.current[ID];
-				}
-			}
-		}
-	}
-}
-
 void Lane_Change::PickUpPushed() {
-	TotalLaneChanger = std::vector<BothLaneChange>(0);
-	Pushed = std::vector<PushedVehicleInformation>(0);
-	AlreadyPicked.clear();
 	PushedVehicleInformation PushedVehicle;
-	BothLaneChange both;
+	BothLaneChangerInformation both;
 	for (int i = 0; i < constants.N; ++i) {
 		int followerID = car.around.following.current[i];
 		int distance = car.headway.current[followerID];
 		bool isFocalVehiclePushed = false;
-		if (car.velocity.current[i] - car.velocity.current[followerID] < 0) isFocalVehiclePushed = true;
+		if (car.velocity.current[i] - car.velocity.current[followerID] < 0) {
+			isFocalVehiclePushed = true;
+			car.pushing.isPushing[car.around.following.current[i]] = true;
+			car.pushing.Preceding[car.around.following.current[i]] = i;
+		}
 		//If Following Vehicle is approaching focal vehicle and he is faster than focal, focakl vehicle feel "Pushed"
-		if (distance <= constants.G && isFocalVehiclePushed) {
+		if (distance <= 15 && isFocalVehiclePushed) {
 			PushedVehicle.info.ID = i;
 			PushedVehicle.info.position = car.position.current[i];
 			PushedVehicle.info.signal = Car_information::SignalKind::Non;
@@ -159,7 +67,7 @@ void Lane_Change::TurnonLaneChangersSignal() {
 		CanditateLeadingCar[i].distance = -1;
 	}
 	LaneChangerInformation changer;
-	BothLaneChange both;
+	BothLaneChangerInformation both;
 	for (int i = 0; i < car.List_Defector.size(); ++i) {
 		changer.signal = Car_information::SignalKind::Non;
 		int ID = car.List_Defector[i];
@@ -194,89 +102,11 @@ void Lane_Change::TurnonLaneChangersSignal() {
 
 bool Lane_Change::TryLaneChange() {
 	bool isLaneChangeDone = false;
-	if (Lanechanger.size() > 0) {
-		Lanechanger = _DecideUpdateOrder();
-		LaneChangerInformation LI;
-		CanditateAroundVehicle around;
-		for (int i = 0; i < Lanechanger.size(); ++i) {
-			LI = Lanechanger[i];
-			LI.position = car.position.current[LI.ID];
-			int FocalLane = car.lanenumber.current[LI.ID];
-			int NextLane = FocalLane + 1;
-			if (LI.signal == Car_information::SignalKind::Left) NextLane -= 2;
-			//If there is another vehicle at NextLane'S same position, LaneChange won't be done
-			if (map.recorded.existence.current[NextLane][LI.position]) continue;
-			around = _GetAroundInformation(LI.ID, NextLane);
-			bool beforeLaneChange = true;
-			if (around.following.distance >= car.velocity.current[around.following.ID] - car.velocity.current[LI.ID]) {
-				isLaneChangeDone = true;
-				++MeasuredThisTime.Lanechange_original;
-				--map.eachlanevehicle[FocalLane];
-				map.recorded.existence.current[FocalLane][LI.position] = false;
-				map.recorded.ID.current[FocalLane][LI.position] = -1;
-				if (map.eachlanevehicle[FocalLane] > 0) _UpdateRelationship(LI, around, beforeLaneChange);
-				else car.leadingvehicle[FocalLane].existence = false;
-				beforeLaneChange = false;
-				car.lanenumber.current[LI.ID] = NextLane;
-				++map.eachlanevehicle[NextLane];
-				map.recorded.existence.current[NextLane][LI.position] = true;
-				map.recorded.ID.current[NextLane][LI.position] = LI.ID;
-				_UpdateRelationship(LI, around, beforeLaneChange);
-			}
-		}
-		for (int Lane = 0; Lane < constants.Numberoflane; ++Lane) {
-			if (map.eachlanevehicle[Lane] == 0) car.leadingvehicle[Lane].existence = false;
-			else {
-				Car_information::LeadingVehicle Leading;
-				Leading = car.leadingvehicle[Lane];
-				int ID = car.around.following.current[Leading.ID];
-				while (ID != Leading.ID) {
-					if (Leading.distance < car.headway.current[ID]) {
-						Leading.distance = car.headway.current[ID];
-						Leading.ID = ID;
-					}
-					ID = car.around.following.current[ID];
-				}
-			}
-		}
-		return isLaneChangeDone;
-	}
-	else return isLaneChangeDone;
-}
-
-bool Lane_Change::TryBothLaneChangeRule() {
-	bool isLaneChangeDone = false;
+	MeasuredThisTime.Lanechange_original = 0;
+    MeasuredThisTime.Lanechange_Pushed = 0;
 	if (TotalLaneChanger.size() > 0) {
-		//Lanechanger = _DecideUpdateOrder();
-		std::vector<BothLaneChange> Order;
-		std::vector<CanditateAroundVehicle::Detected> TrueCanditateLeadingVehicle;
-		for (int i = 0; i < constants.Numberoflane; ++i) {
-			if (CanditateLeadingCar[i].ID != -1) TrueCanditateLeadingVehicle.emplace_back(CanditateLeadingCar[i]);
-		}
-		int picker;
-		int leaderID;
-		if (TrueCanditateLeadingVehicle.empty()) {
-			picker = 0;
-			leaderID = TotalLaneChanger[picker].info.ID;
-		}
-		else {
-			picker = random->random((int)TrueCanditateLeadingVehicle.size() - 1);
-			leaderID = TrueCanditateLeadingVehicle[picker].ID;
-		}
-		int StartingPosition = car.position.current[leaderID];
-		BothLaneChange changer;
-		for (int i = 0; i < TotalLaneChanger.size(); ++i) {
-			changer = TotalLaneChanger[i];
-			changer.info.position = car.position.current[changer.info.ID];
-			if (changer.info.position <= StartingPosition) changer.info.position += constants.lanelength - StartingPosition - 1;
-			else changer.info.position -= StartingPosition + 1;
-			Order.emplace_back(changer);
-		}
-		std::sort(Order.begin(), Order.end(), [](BothLaneChange const& fr, BothLaneChange const& se) {
-			return fr.info.position > se.info.position;
-		});
-		TotalLaneChanger = Order;
-		BothLaneChange LI;
+		TotalLaneChanger = _DecideUpdateOrder();
+		BothLaneChangerInformation LI;
 		CanditateAroundVehicle around;
 		for (int i = 0; i < TotalLaneChanger.size(); ++i) {
 			LI = TotalLaneChanger[i];
@@ -287,6 +117,9 @@ bool Lane_Change::TryBothLaneChangeRule() {
 			if (map.recorded.existence.current[NextLane][LI.info.position]) continue;
 			around = _GetAroundInformation(LI.info.ID, NextLane);
 			bool beforeLaneChange = true;
+			if (LI.isPushed && around.preceding.distance < car.velocity.current[LI.info.ID] - car.velocity.current[around.preceding.ID]) continue;
+			if (around.preceding.distance <= car.headway.current[LI.info.ID]
+				&& car.lanenumber.current[car.pushing.Preceding[LI.info.ID]] != car.lanenumber.previous[car.pushing.Preceding[LI.info.ID]]) continue;
 			if (around.following.distance >= car.velocity.current[around.following.ID] - car.velocity.current[LI.info.ID]) {
 				isLaneChangeDone = true;
 				if (!LI.isPushed)++MeasuredThisTime.Lanechange_original;
@@ -391,26 +224,34 @@ Lane_Change::CanditateAroundVehicle Lane_Change::_GetAroundInformation(int ID, i
 	return around;
 }
 
-std::vector<Lane_Change::LaneChangerInformation> Lane_Change::_DecideUpdateOrder() {
-	std::vector<LaneChangerInformation> Order;
+std::vector<Lane_Change::BothLaneChangerInformation> Lane_Change::_DecideUpdateOrder() {
+	std::vector<BothLaneChangerInformation> Order;
 	std::vector<CanditateAroundVehicle::Detected> TrueCanditateLeadingVehicle;
 	for (int i = 0; i < constants.Numberoflane; ++i) {
 		if (CanditateLeadingCar[i].ID != -1) TrueCanditateLeadingVehicle.emplace_back(CanditateLeadingCar[i]);
 	}
-	int picker = random->random((int)TrueCanditateLeadingVehicle.size() - 1);
-	int leaderID = TrueCanditateLeadingVehicle[picker].ID;
-	int StartingPosition = car.position.current[leaderID];
-	LaneChangerInformation info;
-	for (int i = 0; i < Lanechanger.size(); ++i) {
-		info = Lanechanger[i];
-		info.position = car.position.current[info.ID];
-		if (info.position <= StartingPosition) info.position += constants.lanelength - StartingPosition - 1;
-		else info.position -= StartingPosition + 1;
-		Order.emplace_back(info);
+	int picker;
+	int leaderID;
+	if (TrueCanditateLeadingVehicle.empty()) {
+		picker = 0;
+		leaderID = TotalLaneChanger[picker].info.ID;
 	}
-	std::sort(Order.begin(), Order.end(), [](LaneChangerInformation const& fr, LaneChangerInformation const& se) { 
-		return fr.position > se.position;
-	});
+	else {
+		picker = random->random((int)TrueCanditateLeadingVehicle.size() - 1);
+		leaderID = TrueCanditateLeadingVehicle[picker].ID;
+	}
+	int StartingPosition = car.position.current[leaderID];
+	BothLaneChangerInformation changer;
+	for (int i = 0; i < TotalLaneChanger.size(); ++i) {
+		changer = TotalLaneChanger[i];
+		changer.info.position = car.position.current[changer.info.ID];
+		if (changer.info.position <= StartingPosition) changer.info.position += constants.lanelength - StartingPosition - 1;
+		else changer.info.position -= StartingPosition + 1;
+		Order.emplace_back(changer);
+	}
+	std::sort(Order.begin(), Order.end(), [](BothLaneChangerInformation const& fr, BothLaneChangerInformation const& se) {
+		return fr.info.position > se.info.position;
+		});
 	return Order;
 }
 
@@ -447,3 +288,13 @@ Lane_Change::LaneChangerInformation::LaneChangerInformation() {
 	this->position = -1;
 	this->signal = Car_information::SignalKind::Non;
 }
+
+void Lane_Change::InitializeLaneChangerInfomation() {
+	TotalLaneChanger = std::vector<BothLaneChangerInformation>(0);
+	car.pushing.isPushing = std::vector<bool>(constants.N, false);
+	car.pushing.Preceding = std::vector<int>(constants.N, -1);
+	Pushed = std::vector<PushedVehicleInformation>(0);
+	AlreadyPicked.clear();
+	CanditateLeadingCar = std::vector<CanditateAroundVehicle::Detected>(constants.Numberoflane);
+}
+

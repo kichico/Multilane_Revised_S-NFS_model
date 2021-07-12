@@ -12,9 +12,14 @@ private:
 		CurrentandPreviousvector preceding;
 		CurrentandPreviousvector following;
 	};
+	struct PushingChecker {
+		std::vector<int> Preceding;
+		std::vector<bool> isPushing;
+	};
 public:
 	CurrentandPreviousvector position, velocity, headway,lanenumber;
 	PrecedingandFollowingcarID around;
+	PushingChecker pushing;
 	struct SignalKind {
 		static const int Non = 0;
 		static const int Right = 1;

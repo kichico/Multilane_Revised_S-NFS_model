@@ -54,6 +54,8 @@ bool Update_Position::_UpdateEachLane(int leaderID) {
 		car.canditate_velocity[focalcarID] -= moved;
 		car.position.current[focalcarID] = position;
 		car.velocity.current[focalcarID] = position - car.position.previous[focalcarID];
+		if (car.strategy[focalcarID] == Car_information::StrategyKind::C) AverageVelocityThisTime.Cooperator += moved;
+		else AverageVelocityThisTime.Defector += moved;
 		if (car.velocity.current[focalcarID] < 0) car.velocity.current[focalcarID] += constants.lanelength;
 		int  headway = car.position.current[precedingcarID] - car.position.current[focalcarID] - 1;
 		if (headway < 0) headway += constants.lanelength;

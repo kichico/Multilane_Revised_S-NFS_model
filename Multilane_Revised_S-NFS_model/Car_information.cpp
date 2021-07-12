@@ -10,6 +10,8 @@ void Car_information::Initialize(int Numberofvehicle) {
 	signal = std::vector<int>(Numberofvehicle, 0);
 	strategy = canditate_velocity = Vmax = std::vector<int>(Numberofvehicle, 0);
 	S = std::vector<int>(Numberofvehicle, 0);
+	pushing.isPushing = std::vector<bool>(Numberofvehicle, false);
+	pushing.Preceding = std::vector<int>(Numberofvehicle, -1);
 }
 
 void Car_information::Fromcurrent_toprevious() {
