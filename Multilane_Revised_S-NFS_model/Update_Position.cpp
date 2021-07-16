@@ -3,6 +3,7 @@
 Update_Position::Update_Position(int filenumber, int lanelength, int Numberofvehicle, int Numberoflane, int Cooperator) {
 	this->constants.setConstants(lanelength, Numberoflane, Numberofvehicle);
 	this->InitializeEachSettings(Numberofvehicle, Numberoflane, lanelength, Cooperator);
+	this->AverageVelocityThisTime.init();
 	random = new Random();
 }
 
@@ -26,6 +27,7 @@ void Update_Position::Update_EachVehiclePosition() {
 
 bool Update_Position::_UpdateEachLane(int leaderID) {
 	int focalcarID = leaderID;
+	std::set<int> checker;
 	int lane = car.lanenumber.current[focalcarID];
 	Map_information::update_information updated;
 	updated.existence = map.recorded.existence.current;
@@ -38,7 +40,7 @@ bool Update_Position::_UpdateEachLane(int leaderID) {
 		int precedingcarID = car.around.preceding.current[focalcarID];
 		int position = car.position.current[focalcarID];
 		updated.existence[lane][position] = false;
-		updated.ID[lane][position] = NULL;
+		updated.ID[lane][position] = -1;
 		int RemainCelltoMove = car.canditate_velocity[focalcarID];
 		for (int i = 0; i < RemainCelltoMove; ++i) {
 			position++;
@@ -63,7 +65,8 @@ bool Update_Position::_UpdateEachLane(int leaderID) {
 		map.lanevelocity += car.velocity.current[focalcarID];
 		updated.existence[lane][position] = true;
 		updated.ID[lane][position] = focalcarID;
-		focalcarID = car.around.preceding.current[focalcarID];
+		focalcarID = car.around.following.current[focalcarID];
+		
 		if (focalcarID == leaderID) break;
 	}
 	map.recorded.existence.current = updated.existence;
@@ -95,10 +98,16 @@ Update_Position::Measuredinfomation Update_Position::_Measure(Measuredinfomation
 			if (car.position.current[ID] >= MeasuringPoint && car.position.previous[ID] < MeasuringPoint) {
 				MeasuredThisTime.average_velocity += car.velocity.current[ID];
 				MeasuredThisTime.passed++;
+				//std::cout << ID << "th current:" << car.position.current[ID] << ",previous:" << car.position.previous[ID] << std::endl;
 			}
 		}
 	}
+	int flux = 0;
+	for (int i = 0; i < constants.N; ++i) if (car.position.previous[i] < MeasuringPoint && car.position.current[i] >= MeasuringPoint) flux++;
 	//std::cout << "Pased at this time:"<<MeasuredThisTime.passed << std::endl;
+	//std::cout << "another result:" << flux << std::endl;
+	if (MeasuredThisTime.passed != flux) std::cout << "wtf" << std::endl;
+	//if(MeasuredThisTime.passed!=0) getchar();
 	return MeasuredThisTime;
 }
 

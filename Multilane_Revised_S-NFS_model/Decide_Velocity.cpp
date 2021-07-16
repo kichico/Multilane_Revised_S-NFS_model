@@ -14,9 +14,9 @@ void Decide_Velocity::Decide_targetvelocity() {
 
 int Decide_Velocity::_rule1(int ID, int v) {
 	int VelocityDifference = car.velocity.current[car.around.preceding.current[ID]] - car.velocity.current[ID];
-	bool isPrecedingcarfasterorSame = false;
-	if (VelocityDifference >= 0) isPrecedingcarfasterorSame = true;
-	if (car.headway.current[ID] >= constants.G || isPrecedingcarfasterorSame == true) {
+	bool isPrecedingCarFasterorSame = false;
+	if (VelocityDifference >= 0) isPrecedingCarFasterorSame = true;
+	if (car.headway.current[ID] >= constants.G || isPrecedingCarFasterorSame == true) {
 		v = std::min(car.Vmax[ID], v + 1);
 	}
 	return v;

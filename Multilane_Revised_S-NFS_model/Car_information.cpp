@@ -9,13 +9,13 @@ void Car_information::Initialize(int Numberofvehicle) {
 	lanenumber.current = lanenumber.previous = std::vector<int>(Numberofvehicle, 0);
 	signal = std::vector<int>(Numberofvehicle, 0);
 	strategy = canditate_velocity = Vmax = std::vector<int>(Numberofvehicle, 0);
-	S = std::vector<int>(Numberofvehicle, 0);
+	S = std::vector<int>(Numberofvehicle, 2);
 	pushing.isPushing = std::vector<bool>(Numberofvehicle, false);
 	pushing.Preceding = std::vector<int>(Numberofvehicle, -1);
 }
 
 void Car_information::Fromcurrent_toprevious() {
-	velocity.previous = velocity.previous;
+	velocity.previous = velocity.current;
 	position.previous = position.current;
 	headway.previous = headway.current;
 	lanenumber.previous = lanenumber.current;

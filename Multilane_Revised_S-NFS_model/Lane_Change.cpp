@@ -48,6 +48,8 @@ void Lane_Change::PickUpPushed() {
 				if (PushedVehicle.info.signal == Car_information::SignalKind::Right) PushedVehicle.around = right;
 				both.info = PushedVehicle.info;
 				both.isPushed = true;
+				car.pushing.isPushing[i] = true;
+				car.pushing.Preceding[i] = car.around.preceding.current[i];
 				Pushed.emplace_back(PushedVehicle);
 				AlreadyPicked.insert(both.info.ID);
 				TotalLaneChanger.emplace_back(both);
@@ -119,7 +121,9 @@ bool Lane_Change::TryLaneChange() {
 			bool beforeLaneChange = true;
 			if (LI.isPushed && around.preceding.distance < car.velocity.current[LI.info.ID] - car.velocity.current[around.preceding.ID]) continue;
 			if (around.preceding.distance <= car.headway.current[LI.info.ID]
-				&& car.lanenumber.current[car.pushing.Preceding[LI.info.ID]] != car.lanenumber.previous[car.pushing.Preceding[LI.info.ID]]) continue;
+				&& LI.isPushed) {
+				if(car.lanenumber.current[car.pushing.Preceding[LI.info.ID]] != car.lanenumber.previous[car.pushing.Preceding[LI.info.ID]]) continue;
+			}
 			if (around.following.distance >= car.velocity.current[around.following.ID] - car.velocity.current[LI.info.ID]) {
 				isLaneChangeDone = true;
 				if (!LI.isPushed)++MeasuredThisTime.Lanechange_original;
@@ -296,5 +300,7 @@ void Lane_Change::InitializeLaneChangerInfomation() {
 	Pushed = std::vector<PushedVehicleInformation>(0);
 	AlreadyPicked.clear();
 	CanditateLeadingCar = std::vector<CanditateAroundVehicle::Detected>(constants.Numberoflane);
+	car.pushing.Preceding.assign(constants.N, -1);
+	car.pushing.isPushing.assign(constants.N, false);
 }
 

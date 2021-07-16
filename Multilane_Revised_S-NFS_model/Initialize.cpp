@@ -1,6 +1,9 @@
 #include "Initialize.h"
+#include <set>
 
 void Initialize::InitializeEachSettings(int Numberofvehicle, int Numberoflane, int lanelength, int Cooperator) {
+	isCorrelated = true;
+	isDistributed = true;
 	Defectoreachlane = std::vector<int>(Numberoflane, 0);
 	this->Cooperator = Cooperator;
 	this->Defector = constants.N - Cooperator;
@@ -85,10 +88,10 @@ void Initialize::_AssignStrategy() {
 	for (int i = 0; i < Cooperator; ++i) {
 		int Itwillbecooperator = (int)DCar.size() - 1;
 		int picker = random->random(Itwillbecooperator);
+		car.strategy[DCar[picker]] = Car_information::StrategyKind::C;
+		CCar.emplace_back(DCar[picker]);
 		std::iter_swap(DCar.begin() + picker, DCar.end() - 1);
 		DCar.pop_back();
-		car.strategy[picker] = Car_information::StrategyKind::C;
-		CCar.emplace_back(picker);
 	}
 	for (int i = 0; i < DCar.size(); ++i) car.strategy[DCar[i]] = Car_information::StrategyKind::D;
 	car.List_Defector = DCar;
@@ -101,33 +104,41 @@ void Initialize::_AssignVmax() {
 	}
 	else if (isDistributed == true && isCorrelated == false) {
 		std::vector<int> NotassignedVmax(constants.N);
+		for (int i = 0; i < constants.N; ++i) NotassignedVmax[i] = i;
 		for (int i = 0; i < constants.N; ++i) {
 			int Numofnotassigned = (int)NotassignedVmax.size() - 1;
 			int picker = random->random(Numofnotassigned);
+			//std::cout << "picked:" << NotassignedVmax[picker] << std::endl;
+			if (i % 3 == 0) car.Vmax[NotassignedVmax[picker]] = 4;
+			else if (i % 3 == 1) car.Vmax[NotassignedVmax[picker]] = 5;
+			else car.Vmax[NotassignedVmax[picker]] = 6;
 			std::iter_swap(NotassignedVmax.begin() + picker, NotassignedVmax.end() - 1);
 			NotassignedVmax.pop_back();
-			if (i % 3 == 0) car.Vmax[picker] = 4;
-			else if (i % 3 == 1) car.Vmax[picker] = 5;
-			else car.Vmax[picker] = 6;
 		}
 	}
 	else if (isDistributed == true && isCorrelated == true) {
 		int slowspeedcar = (int)std::round((double)constants.N / 3);
-		int highspeedcar = constants.N - slowspeedcar;
+		int highspeedcar = constants.N - 2 * slowspeedcar;
 		int generalspeedcar = constants.N - slowspeedcar - highspeedcar;
 		int alreadyassigned = 0;
+		std::set<int> checker;
+		std::cout << "slow:" << slowspeedcar << ",high:" << highspeedcar << ",general:" << generalspeedcar << std::endl;
+		std::cout << car.List_Defector.size() << "," << car.List_Cooperator.size() << std::endl;
 		for (int i = 0; i < (int)car.List_Defector.size(); ++i) {
 			if (alreadyassigned < highspeedcar) car.Vmax[car.List_Defector[i]] = 6;
-			else if (alreadyassigned < highspeedcar + generalspeedcar) car.Vmax[car.List_Defector[i]] = 5;
+			else if (alreadyassigned < (highspeedcar + generalspeedcar)) car.Vmax[car.List_Defector[i]] = 5;
 			else car.Vmax[car.List_Defector[i]] = 4;
 			alreadyassigned++;
+			checker.insert(car.List_Defector[i]);
 		}
 		for (int i = 0; i < (int)car.List_Cooperator.size(); ++i) {
 			if (alreadyassigned < highspeedcar) car.Vmax[car.List_Cooperator[i]] = 6;
-			else if (alreadyassigned < highspeedcar + generalspeedcar) car.Vmax[car.List_Cooperator[i]] = 5;
+			else if (alreadyassigned < (highspeedcar + generalspeedcar)) car.Vmax[car.List_Cooperator[i]] = 5;
 			else car.Vmax[car.List_Cooperator[i]] = 4;
 			alreadyassigned++;
+			checker.insert(car.List_Cooperator[i]);
 		}
+		std::cout << "already:" << alreadyassigned << ",checker:" << checker.size() << std::endl;
 	}
 	else {
 		std::cout << "You did wrong settings at distributed region" << std::endl;
