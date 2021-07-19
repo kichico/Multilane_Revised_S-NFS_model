@@ -16,6 +16,7 @@ void Multilane_TrafficFlow::Calculation(int filenumber,int lanelength, int Numbe
 				SS << SLine;
 				std::getline(SS, S, ',');
 				int Val = ((std::stoi(S)) / 75) - 1;
+				if (Val < 0) continue;
 				NFinished[Val] = true;
 				std::cout << "Val:" << Val << std::endl;
 			}
@@ -23,10 +24,11 @@ void Multilane_TrafficFlow::Calculation(int filenumber,int lanelength, int Numbe
 		ifs.close();
 		std::vector<int> NLists;
 		for (int i = 0; i < NFinished.size(); i++) if (!NFinished[i]) NLists.push_back((i + 1) * 75);
+
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic) num_threads(3)
+#pragma omp parallel for schedule(dynamic)
 #endif // _OPENMP
-		for (int i = 0; i < NLists[i]; i ++) {
+		for (int i = 0; i < NLists.size(); i++) {
 			int N = NLists[i];
 			int CCar = (int)std::round(Cp * N);
 			Update_Position::Measuredinfomation AllResult;
@@ -49,9 +51,9 @@ void Multilane_TrafficFlow::Calculation(int filenumber,int lanelength, int Numbe
 #pragma omp critical
 #endif // _OPENMP
 			{
-				ofs << i << "," << (double)i / Numberofvehicle << "," << (double)AllResult.passed / Numberoflane << "," << AllResult.Lanechange_original << "," << AllResult.Lanechange_Pushed << ",";
+				ofs << N << "," << (double)N / Numberofvehicle << "," << (double)AllResult.passed / Numberoflane << "," << AllResult.Lanechange_original << "," << AllResult.Lanechange_Pushed << ",";
 				ofs << (double)AllAverageVelocity.Cooperator / (DoSim->Cooperator * 300) << "," << (double)AllAverageVelocity.Defector / (DoSim->Defector * 300) << std::endl;
-				std::cout << i << "," << (double)i / Numberofvehicle << "," << (double)AllResult.passed / Numberoflane << "," << AllResult.Lanechange_original << "," << AllResult.Lanechange_Pushed << ",";
+				std::cout << N << "," << (double)N / Numberofvehicle << "," << (double)AllResult.passed / Numberoflane << "," << AllResult.Lanechange_original << "," << AllResult.Lanechange_Pushed << ",";
 				std::cout << (double)AllAverageVelocity.Cooperator / (DoSim->Cooperator * 300) << "," << (double)AllAverageVelocity.Defector / (DoSim->Defector * 300) << std::endl;
 			}
 			delete DoSim;

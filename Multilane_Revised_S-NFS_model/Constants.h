@@ -13,6 +13,7 @@ public:
 	int N;
 	int lanelength;
 	int Numberoflane;
+	int GB;
 	void setConstants(int lanelength, int Numberoflane, int Numberofvehicle);
 };
 

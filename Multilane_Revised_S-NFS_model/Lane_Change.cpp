@@ -1,19 +1,64 @@
 #include "Lane_Change.h"
 
+void Lane_Change::TurnonLaneChangersSignal() {
+	Lanechanger = std::vector<LaneChangerInformation>(0);
+	MeasuredThisTime.Lanechange_original = 0;
+	MeasuredThisTime.Lanechange_Pushed = 0;
+	LaneChangerInformation changer;
+	BothLaneChangerInformation both;
+	for (int i = 0; i < car.List_Defector.size(); ++i) {
+		changer.signal = Car_information::SignalKind::Non;
+		int ID = car.List_Defector[i];
+		InsentiveInformation right, left;
+		left = _CheckInsentives(ID, Car_information::SignalKind::Left);
+		right = _CheckInsentives(ID, Car_information::SignalKind::Right);
+		if (left.on == false && right.on == false) {
+			if (car.headway.current[ID] > car.velocity.current[ID] - car.velocity.current[car.around.preceding.current[ID]]) {
+				WillbePusher.emplace(ID);
+				continue;
+			}
+			else continue;
+		}
+		if (left.on == true || right.on == true) {
+			if (left.distance > right.distance) changer.signal = Car_information::SignalKind::Left;
+			else if (left.distance < right.distance) changer.signal = Car_information::SignalKind::Right;
+			else {
+				if (random->random(1.0) < 0.5)  if (left.on) changer.signal = Car_information::SignalKind::Left;
+				else if (right.on) changer.signal = Car_information::SignalKind::Right;
+			}
+			if (changer.signal != Car_information::SignalKind::Non) {
+				changer.ID = ID;
+				changer.position = car.position.current[ID];
+				int v = car.lanenumber.current[changer.ID];
+				Lanechanger.emplace_back(changer);
+				both.info = changer;
+				both.isPushed = false;
+				TotalLaneChanger.emplace_back(both);
+				AlreadyChosen.emplace(ID);
+				if (CanditateLeadingCar[car.lanenumber.current[changer.ID]].distance < car.headway.current[changer.ID]) {
+					CanditateLeadingCar[car.lanenumber.current[changer.ID]].ID = changer.ID;
+					CanditateLeadingCar[car.lanenumber.current[changer.ID]].distance = car.headway.current[changer.ID];
+				}
+			}
+		}
+	}
+}
+
+
 void Lane_Change::PickUpPushed() {
 	PushedVehicleInformation PushedVehicle;
 	BothLaneChangerInformation both;
+	int BackwardSafetyDistance = 3;
 	for (int i = 0; i < constants.N; ++i) {
+		if (AlreadyChosen.count(i) != 0) continue;
 		int followerID = car.around.following.current[i];
 		int distance = car.headway.current[followerID];
 		bool isFocalVehiclePushed = false;
-		if (car.velocity.current[i] - car.velocity.current[followerID] < 0) {
-			isFocalVehiclePushed = true;
-			car.pushing.isPushing[car.around.following.current[i]] = true;
-			car.pushing.Preceding[car.around.following.current[i]] = i;
-		}
-		//If Following Vehicle is approaching focal vehicle and he is faster than focal, focakl vehicle feel "Pushed"
-		if (distance <= 15 && isFocalVehiclePushed) {
+		int VelocityDefference = car.velocity.current[i] - car.velocity.current[followerID];
+		if (VelocityDefference < 0 && WillbePusher.count(followerID) == 1) isFocalVehiclePushed = true;
+		else if (VelocityDefference < 0 && car.strategy[followerID] == Car_information::StrategyKind::C) car.canditate_velocity[followerID] = std::max(1, car.canditate_velocity[followerID] - 1);
+		//If Following Vehicle which wants to "Push" is approaching focal vehicle and follower is faster than focal, focal vehicle feel "Pushed"
+		if (distance <= BackwardSafetyDistance && isFocalVehiclePushed) {
 			PushedVehicle.info.ID = i;
 			PushedVehicle.info.position = car.position.current[i];
 			PushedVehicle.info.signal = Car_information::SignalKind::Non;
@@ -48,59 +93,18 @@ void Lane_Change::PickUpPushed() {
 				if (PushedVehicle.info.signal == Car_information::SignalKind::Right) PushedVehicle.around = right;
 				both.info = PushedVehicle.info;
 				both.isPushed = true;
-				car.pushing.isPushing[i] = true;
-				car.pushing.Preceding[i] = car.around.preceding.current[i];
-				Pushed.emplace_back(PushedVehicle);
-				AlreadyPicked.insert(both.info.ID);
 				TotalLaneChanger.emplace_back(both);
-			}
-		}
-	}
-}
-
-void Lane_Change::TurnonLaneChangersSignal() {
-	//std::cout << "-----------------------------------" << std::endl;
-	Lanechanger = std::vector<LaneChangerInformation>(0);
-	CanditateLeadingCar = std::vector<CanditateAroundVehicle::Detected>(constants.Numberoflane);
-	MeasuredThisTime.Lanechange_original = 0;
-	MeasuredThisTime.Lanechange_Pushed = 0;
-	for (int i = 0; i < constants.Numberoflane; ++i) {
-		CanditateLeadingCar[i].ID = -1;
-		CanditateLeadingCar[i].distance = -1;
-	}
-	LaneChangerInformation changer;
-	BothLaneChangerInformation both;
-	for (int i = 0; i < car.List_Defector.size(); ++i) {
-		changer.signal = Car_information::SignalKind::Non;
-		int ID = car.List_Defector[i];
-		if (AlreadyPicked.count(ID) != 0) continue;
-		InsentiveInformation right, left;
-		left = _CheckInsentives(ID, Car_information::SignalKind::Left);
-		right = _CheckInsentives(ID, Car_information::SignalKind::Right);
-		if (left.on == false && right.on == false) continue;
-		if (left.on == true || right.on == true) {
-			if (left.distance > right.distance) changer.signal = Car_information::SignalKind::Left;
-			else if (left.distance < right.distance) changer.signal = Car_information::SignalKind::Right;
-			else {
-				if (random->random(1.0) < 0.5)  if (left.on) changer.signal = Car_information::SignalKind::Left;
-				else if (right.on) changer.signal = Car_information::SignalKind::Right;
-			}
-			if (changer.signal != Car_information::SignalKind::Non) {
-				changer.ID = ID;
-				changer.position = car.position.current[ID];
-				int v = car.lanenumber.current[changer.ID];
-				Lanechanger.emplace_back(changer);
-				both.info = changer;
-				both.isPushed = false;
-				TotalLaneChanger.emplace_back(both);
-				if (CanditateLeadingCar[car.lanenumber.current[changer.ID]].distance < car.headway.current[changer.ID]) {
-					CanditateLeadingCar[car.lanenumber.current[changer.ID]].ID = changer.ID;
-					CanditateLeadingCar[car.lanenumber.current[changer.ID]].distance = car.headway.current[changer.ID];
+				car.pushing.isPushing[car.around.following.current[i]] = true;
+				car.pushing.Preceding[car.around.following.current[i]] = i;
+				if (CanditateLeadingCar[car.lanenumber.current[both.info.ID]].distance < car.headway.current[both.info.ID]) {
+					CanditateLeadingCar[car.lanenumber.current[both.info.ID]].ID = both.info.ID;
+					CanditateLeadingCar[car.lanenumber.current[both.info.ID]].distance = car.headway.current[both.info.ID];
 				}
 			}
 		}
 	}
 }
+
 
 bool Lane_Change::TryLaneChange() {
 	bool isLaneChangeDone = false;
@@ -120,13 +124,13 @@ bool Lane_Change::TryLaneChange() {
 			around = _GetAroundInformation(LI.info.ID, NextLane);
 			bool beforeLaneChange = true;
 			if (LI.isPushed && around.preceding.distance < car.velocity.current[LI.info.ID] - car.velocity.current[around.preceding.ID]) continue;
-			if (around.preceding.distance <= car.headway.current[LI.info.ID]
-				&& LI.isPushed) {
-				if(car.lanenumber.current[car.pushing.Preceding[LI.info.ID]] != car.lanenumber.previous[car.pushing.Preceding[LI.info.ID]]) continue;
+			if (around.preceding.distance <= car.headway.current[LI.info.ID]) continue;
+			if (car.pushing.isPushing[i]) {
+				if (car.lanenumber.current[car.pushing.Preceding[i]] != car.lanenumber.previous[car.pushing.Preceding[i]]) continue;
 			}
 			if (around.following.distance >= car.velocity.current[around.following.ID] - car.velocity.current[LI.info.ID]) {
 				isLaneChangeDone = true;
-				if (!LI.isPushed)++MeasuredThisTime.Lanechange_original;
+				if (!LI.isPushed) ++MeasuredThisTime.Lanechange_original;
 				else ++MeasuredThisTime.Lanechange_Pushed;
 				--map.eachlanevehicle[FocalLane];
 				map.recorded.existence.current[FocalLane][LI.info.position] = false;
@@ -298,9 +302,14 @@ void Lane_Change::InitializeLaneChangerInfomation() {
 	car.pushing.isPushing = std::vector<bool>(constants.N, false);
 	car.pushing.Preceding = std::vector<int>(constants.N, -1);
 	Pushed = std::vector<PushedVehicleInformation>(0);
-	AlreadyPicked.clear();
+	WillbePusher.clear();
+	AlreadyChosen.clear();
 	CanditateLeadingCar = std::vector<CanditateAroundVehicle::Detected>(constants.Numberoflane);
 	car.pushing.Preceding.assign(constants.N, -1);
 	car.pushing.isPushing.assign(constants.N, false);
+	for (int i = 0; i < constants.Numberoflane; ++i) {
+		CanditateLeadingCar[i].ID = -1;
+		CanditateLeadingCar[i].distance = -1;
+	}
 }
 

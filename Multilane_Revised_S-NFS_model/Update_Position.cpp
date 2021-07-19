@@ -66,7 +66,6 @@ bool Update_Position::_UpdateEachLane(int leaderID) {
 		updated.existence[lane][position] = true;
 		updated.ID[lane][position] = focalcarID;
 		focalcarID = car.around.following.current[focalcarID];
-		
 		if (focalcarID == leaderID) break;
 	}
 	map.recorded.existence.current = updated.existence;

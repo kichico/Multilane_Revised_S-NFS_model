@@ -37,7 +37,8 @@ private:
 	void _UpdateRelationship(LaneChangerInformation LI,CanditateAroundVehicle around, bool beforeLaneChange);
 	std::vector<PushedVehicleInformation> Pushed;
 	std::vector<BothLaneChangerInformation> TotalLaneChanger;
-	std::set<int> AlreadyPicked;
+	std::set<int> WillbePusher,AlreadyChosen;
+	std::set<int> check;
 public:
 	std::vector<LaneChangerInformation> Lanechanger;
 	void TurnonLaneChangersSignal();

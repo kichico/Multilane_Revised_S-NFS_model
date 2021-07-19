@@ -1,9 +1,9 @@
 #include "Initialize.h"
-#include <set>
+
 
 void Initialize::InitializeEachSettings(int Numberofvehicle, int Numberoflane, int lanelength, int Cooperator) {
-	isCorrelated = true;
-	isDistributed = true;
+	isCorrelated = false;
+	isDistributed = false;
 	Defectoreachlane = std::vector<int>(Numberoflane, 0);
 	this->Cooperator = Cooperator;
 	this->Defector = constants.N - Cooperator;
@@ -121,24 +121,19 @@ void Initialize::_AssignVmax() {
 		int highspeedcar = constants.N - 2 * slowspeedcar;
 		int generalspeedcar = constants.N - slowspeedcar - highspeedcar;
 		int alreadyassigned = 0;
-		std::set<int> checker;
-		std::cout << "slow:" << slowspeedcar << ",high:" << highspeedcar << ",general:" << generalspeedcar << std::endl;
 		std::cout << car.List_Defector.size() << "," << car.List_Cooperator.size() << std::endl;
 		for (int i = 0; i < (int)car.List_Defector.size(); ++i) {
 			if (alreadyassigned < highspeedcar) car.Vmax[car.List_Defector[i]] = 6;
 			else if (alreadyassigned < (highspeedcar + generalspeedcar)) car.Vmax[car.List_Defector[i]] = 5;
 			else car.Vmax[car.List_Defector[i]] = 4;
 			alreadyassigned++;
-			checker.insert(car.List_Defector[i]);
 		}
 		for (int i = 0; i < (int)car.List_Cooperator.size(); ++i) {
 			if (alreadyassigned < highspeedcar) car.Vmax[car.List_Cooperator[i]] = 6;
 			else if (alreadyassigned < (highspeedcar + generalspeedcar)) car.Vmax[car.List_Cooperator[i]] = 5;
 			else car.Vmax[car.List_Cooperator[i]] = 4;
 			alreadyassigned++;
-			checker.insert(car.List_Cooperator[i]);
 		}
-		std::cout << "already:" << alreadyassigned << ",checker:" << checker.size() << std::endl;
 	}
 	else {
 		std::cout << "You did wrong settings at distributed region" << std::endl;
