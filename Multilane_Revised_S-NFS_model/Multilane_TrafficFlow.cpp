@@ -29,7 +29,7 @@ void Multilane_TrafficFlow::Calculation(int filenumber,int lanelength, int Numbe
 #pragma omp parallel for schedule(dynamic)
 #endif // _OPENMP
 		for (int i = 0; i < NLists.size(); i++) {
-			int N = NLists[i];
+			int N = 450;
 			int CCar = (int)std::round(Cp * N);
 			Update_Position::Measuredinfomation AllResult;
 			Update_Position::AverageVelocity AllAverageVelocity;
@@ -67,7 +67,7 @@ void Multilane_TrafficFlow::_DoSimulation(Update_Position* DoSim) {
 	DoSim->car.Fromcurrent_toprevious();
 	DoSim->map.Fromcurrent_toprevious();
 	DoSim->InitializeLaneChangerInfomation();
-	DoSim->TurnonLaneChangersSignal();
+	//DoSim->TurnonLaneChangersSignal();
 	DoSim->PickUpPushed();
 	DoSim->Update_EachVehiclePosition();
 	if (DoSim->TryLaneChange()) DoSim->Update_EachVehiclePosition();

@@ -6,19 +6,13 @@ void Lane_Change::TurnonLaneChangersSignal() {
 	MeasuredThisTime.Lanechange_Pushed = 0;
 	LaneChangerInformation changer;
 	BothLaneChangerInformation both;
-	for (int i = 0; i < car.List_Defector.size(); ++i) {
+	for (int i = 0; i < constants.N; ++i) {
 		changer.signal = Car_information::SignalKind::Non;
-		int ID = car.List_Defector[i];
+		int ID = i;
 		InsentiveInformation right, left;
 		left = _CheckInsentives(ID, Car_information::SignalKind::Left);
 		right = _CheckInsentives(ID, Car_information::SignalKind::Right);
-		if (left.on == false && right.on == false) {
-			if (car.headway.current[ID] > car.velocity.current[ID] - car.velocity.current[car.around.preceding.current[ID]]) {
-				WillbePusher.emplace(ID);
-				continue;
-			}
-			else continue;
-		}
+		if (left.on == false && right.on == false) continue;
 		if (left.on == true || right.on == true) {
 			if (left.distance > right.distance) changer.signal = Car_information::SignalKind::Left;
 			else if (left.distance < right.distance) changer.signal = Car_information::SignalKind::Right;
@@ -55,8 +49,7 @@ void Lane_Change::PickUpPushed() {
 		int distance = car.headway.current[followerID];
 		bool isFocalVehiclePushed = false;
 		int VelocityDefference = car.velocity.current[i] - car.velocity.current[followerID];
-		if (VelocityDefference < 0 && WillbePusher.count(followerID) == 1) isFocalVehiclePushed = true;
-		else if (VelocityDefference < 0 && car.strategy[followerID] == Car_information::StrategyKind::C) car.canditate_velocity[followerID] = std::max(1, car.canditate_velocity[followerID] - 1);
+		if (VelocityDefference < 0 && car.strategy[followerID] == Car_information::StrategyKind::D) isFocalVehiclePushed = true;
 		//If Following Vehicle which wants to "Push" is approaching focal vehicle and follower is faster than focal, focal vehicle feel "Pushed"
 		if (distance <= BackwardSafetyDistance && isFocalVehiclePushed) {
 			PushedVehicle.info.ID = i;
@@ -124,9 +117,9 @@ bool Lane_Change::TryLaneChange() {
 			around = _GetAroundInformation(LI.info.ID, NextLane);
 			bool beforeLaneChange = true;
 			if (LI.isPushed && around.preceding.distance < car.velocity.current[LI.info.ID] - car.velocity.current[around.preceding.ID]) continue;
-			if (around.preceding.distance <= car.headway.current[LI.info.ID]) continue;
-			if (car.pushing.isPushing[i]) {
-				if (car.lanenumber.current[car.pushing.Preceding[i]] != car.lanenumber.previous[car.pushing.Preceding[i]]) continue;
+			if (around.preceding.distance < car.headway.current[LI.info.ID]) continue;
+			if (car.pushing.isPushing[LI.info.ID]) {
+				if (car.lanenumber.current[car.pushing.Preceding[LI.info.ID]] != car.lanenumber.previous[car.pushing.Preceding[LI.info.ID]]) continue;
 			}
 			if (around.following.distance >= car.velocity.current[around.following.ID] - car.velocity.current[LI.info.ID]) {
 				isLaneChangeDone = true;
