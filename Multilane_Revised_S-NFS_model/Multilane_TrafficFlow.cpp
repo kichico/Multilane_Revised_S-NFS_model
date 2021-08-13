@@ -18,7 +18,6 @@ void Multilane_TrafficFlow::Calculation(int filenumber,int lanelength, int Numbe
 				int Val = ((std::stoi(S)) / 75) - 1;
 				if (Val < 0) continue;
 				NFinished[Val] = true;
-				std::cout << "Val:" << Val << std::endl;
 			}
 		}
 		ifs.close();

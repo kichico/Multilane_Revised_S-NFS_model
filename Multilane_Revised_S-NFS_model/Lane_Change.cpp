@@ -56,7 +56,7 @@ void Lane_Change::PickUpPushed() {
 		bool isFocalVehiclePushed = false;
 		int VelocityDefference = car.velocity.current[i] - car.velocity.current[followerID];
 		if (VelocityDefference < 0 && WillbePusher.count(followerID) == 1) isFocalVehiclePushed = true;
-		else if (VelocityDefference < 0 && car.strategy[followerID] == Car_information::StrategyKind::C) car.canditate_velocity[followerID] = std::max(1, car.canditate_velocity[followerID] - 1);
+		//else if (VelocityDefference < 0 && car.strategy[followerID] == Car_information::StrategyKind::C) car.canditate_velocity[followerID] = std::max(1, car.canditate_velocity[followerID] - 1);
 		//If Following Vehicle which wants to "Push" is approaching focal vehicle and follower is faster than focal, focal vehicle feel "Pushed"
 		if (distance <= BackwardSafetyDistance && isFocalVehiclePushed) {
 			PushedVehicle.info.ID = i;
@@ -124,7 +124,6 @@ bool Lane_Change::TryLaneChange() {
 			around = _GetAroundInformation(LI.info.ID, NextLane);
 			bool beforeLaneChange = true;
 			if (LI.isPushed && around.preceding.distance < car.velocity.current[LI.info.ID] - car.velocity.current[around.preceding.ID]) continue;
-			if (around.preceding.distance <= car.headway.current[LI.info.ID]) continue;
 			if (car.pushing.isPushing[i]) {
 				if (car.lanenumber.current[car.pushing.Preceding[i]] != car.lanenumber.previous[car.pushing.Preceding[i]]) continue;
 			}
