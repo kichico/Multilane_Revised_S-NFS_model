@@ -3,6 +3,7 @@
 void Multilane_TrafficFlow::Calculation(int filenumber,int lanelength, int Numberofvehicle, int Numberoflane) {
 	for (int Crate = 0; Crate <= 100; Crate += 10) {
 		double Cp = (double)Crate / 100;
+		Cp = 0.6;
 		int ave = 0;
 		std::string filename = "Result/Global" + std::to_string(filenumber) + "_Crate" + std::to_string(Crate) + "_.dat";
 		std::string file_TS = "Result/time-space.csv";

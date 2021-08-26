@@ -1,9 +1,11 @@
 #include "Initialize.h"
+#include <algorithm>
+#include <numeric>
 
 
 void Initialize::InitializeEachSettings(int Numberofvehicle, int Numberoflane, int lanelength, int Cooperator) {
 	isCorrelated = false;
-	isDistributed = false;
+	isDistributed = true;
 	Defectoreachlane = std::vector<int>(Numberoflane, 0);
 	this->Cooperator = Cooperator;
 	this->Defector = constants.N - Cooperator;
@@ -103,37 +105,48 @@ void Initialize::_AssignVmax() {
 		for (int i = 0; i < constants.N; ++i) car.Vmax[i] = 5;
 	}
 	else if (isDistributed == true && isCorrelated == false) {
+		int CV = 0, DV = 0;
 		std::vector<int> NotassignedVmax(constants.N);
 		for (int i = 0; i < constants.N; ++i) NotassignedVmax[i] = i;
 		for (int i = 0; i < constants.N; ++i) {
 			int Numofnotassigned = (int)NotassignedVmax.size() - 1;
 			int picker = random->random(Numofnotassigned);
-			//std::cout << "picked:" << NotassignedVmax[picker] << std::endl;
 			if (i % 3 == 0) car.Vmax[NotassignedVmax[picker]] = 4;
 			else if (i % 3 == 1) car.Vmax[NotassignedVmax[picker]] = 5;
 			else car.Vmax[NotassignedVmax[picker]] = 6;
+			if (car.strategy[NotassignedVmax[picker]] == Car_information::StrategyKind::C) CV += car.Vmax[NotassignedVmax[picker]];
+			else DV += car.Vmax[NotassignedVmax[picker]];
 			std::iter_swap(NotassignedVmax.begin() + picker, NotassignedVmax.end() - 1);
 			NotassignedVmax.pop_back();
 		}
+		std::cout << "C:" << (double)CV / car.List_Cooperator.size() << ",D:" << (double)DV / car.List_Defector.size() << std::endl;
+		std::cout << std::accumulate(car.Vmax.begin(), car.Vmax.end(), (double)0.0) / constants.N << std::endl;
+		getchar();
 	}
 	else if (isDistributed == true && isCorrelated == true) {
 		int slowspeedcar = (int)std::round((double)constants.N / 3);
 		int highspeedcar = constants.N - 2 * slowspeedcar;
 		int generalspeedcar = constants.N - slowspeedcar - highspeedcar;
 		int alreadyassigned = 0;
-		std::cout << car.List_Defector.size() << "," << car.List_Cooperator.size() << std::endl;
+		int CV = 0, DV = 0;
+		//std::cout << car.List_Defector.size() << "," << car.List_Cooperator.size() << std::endl;
 		for (int i = 0; i < (int)car.List_Defector.size(); ++i) {
 			if (alreadyassigned < highspeedcar) car.Vmax[car.List_Defector[i]] = 6;
 			else if (alreadyassigned < (highspeedcar + generalspeedcar)) car.Vmax[car.List_Defector[i]] = 5;
 			else car.Vmax[car.List_Defector[i]] = 4;
 			alreadyassigned++;
+			DV += car.Vmax[car.List_Defector[i]];
 		}
 		for (int i = 0; i < (int)car.List_Cooperator.size(); ++i) {
 			if (alreadyassigned < highspeedcar) car.Vmax[car.List_Cooperator[i]] = 6;
 			else if (alreadyassigned < (highspeedcar + generalspeedcar)) car.Vmax[car.List_Cooperator[i]] = 5;
 			else car.Vmax[car.List_Cooperator[i]] = 4;
 			alreadyassigned++;
+			CV += car.Vmax[car.List_Cooperator[i]];
 		}
+		std::cout << "C:" << (double)CV / car.List_Cooperator.size() << ",D:" << (double)DV / car.List_Defector.size() << std::endl;
+		std::cout << std::accumulate(car.Vmax.begin(), car.Vmax.end(), (double)0.0) / constants.N << std::endl;
+		getchar();
 	}
 	else {
 		std::cout << "You did wrong settings at distributed region" << std::endl;
